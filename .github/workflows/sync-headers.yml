@@ -40,7 +40,7 @@ jobs:
         run: |
           cp -r /home/linuxbrew/.linuxbrew/Cellar/nlohmann-json/*/include/* src/pgm_build_dependencies/include/
           cp -r /home/linuxbrew/.linuxbrew/Cellar/boost/*/include/* src/pgm_build_dependencies/include/
-          cp -r /home/linuxbrew/.linuxbrew/Cellar/eigen/*/include/eigen3/Eigen/* src/pgm_build_dependencies/include/Eigen/*
+          cp -r /home/linuxbrew/.linuxbrew/Cellar/eigen/*/include/eigen3/Eigen/* src/pgm_build_dependencies/include/Eigen/
           cp -r /home/linuxbrew/.linuxbrew/Cellar/msgpack-cxx/*/include/* src/pgm_build_dependencies/include/
 
       - name: Commit and push changes
