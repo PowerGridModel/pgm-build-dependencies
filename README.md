@@ -18,6 +18,14 @@ requires = [
 ]
 ```
 
+You can get the header path in Python script as follows:
+
+```python
+import pgm_build_dependencies
+
+header_path = pgm_build_dependencies.get_include()
+```
+
 ## License
 
 The source code of this package is licensed under the [MPL-2.0](https://spdx.org/licenses/MPL-2.0.html) license.
