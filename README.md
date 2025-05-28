@@ -5,6 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 -->
 
 # pgm-build-dependencies
+
 A proxy Python package to host all header-only libraries which are needed to build Power Grid Model.
 
 ## Installation and Usage
@@ -24,6 +25,12 @@ You can get the header path in Python script as follows:
 import pgm_build_dependencies
 
 header_path = pgm_build_dependencies.get_include()
+```
+
+You can also get the path to the header-only libraries in command line:
+
+```bash
+pgm_build_dependencies
 ```
 
 ## License

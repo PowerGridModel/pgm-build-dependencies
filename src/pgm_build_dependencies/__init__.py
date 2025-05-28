@@ -9,3 +9,7 @@ from importlib_resources import files
 
 def get_include() -> Path:
     return files("pgm_build_dependencies.include")
+
+
+def print_include() -> None:
+    print(get_include(), end="")

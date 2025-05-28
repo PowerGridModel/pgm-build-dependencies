@@ -42,6 +42,9 @@ dev = [
 [project.urls]
 GitHub = "https://github.com/PowerGridModel/pgm-build-dependencies"
 
+[project.scripts]
+pgm-build-dependencies = "pgm_build_dependencies:print_include"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 namespaces = true
