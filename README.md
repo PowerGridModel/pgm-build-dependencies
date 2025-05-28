@@ -13,6 +13,7 @@ The GitHub Actions automatically fetches the latest versions of the header-only 
 ## Installation and Usage
 
 This package should be part of build dependencies of the Power Grid Model project.
+Given its limited applicability, we deliberately do not publish it to PyPI, but instead use a GitHub repository as a source.
 
 ```toml
 [build-system]
