@@ -8,6 +8,8 @@ SPDX-License-Identifier: MPL-2.0
 
 A proxy Python package to host all header-only libraries which are needed to build Power Grid Model.
 
+The GitHub Actions automatically fetches the latest versions of the header-only libraries and updates the `pgm-build-dependencies` package.
+
 ## Installation and Usage
 
 This package should be part of build dependencies of the Power Grid Model project.

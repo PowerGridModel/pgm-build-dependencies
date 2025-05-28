@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: Contributors to the Power Grid Model project <powergridmodel@lfenergy.org>
+#
+# SPDX-License-Identifier: MPL-2.0
+
+
+name: Sync headers from upstream repository (brew)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * *" # Based on UTC time
+
+jobs:
+  sync-headers:
+    name: "Sync headers from upstream repository (brew)"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          architecture: x64
+
+      - name: Install dependencies
+        run: pip install build
+      
+      - name: Enable brew
+        run: echo "/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin" >> $GITHUB_PATH
+
+      - name: Install brew
+        run: |
+           brew install nlohmann-json boost eigen msgpack-cxx
+
+      - name: copy headers
+        run: |
+          cp -r /home/linuxbrew/.linuxbrew/Cellar/nlohmann-json/*/include/*
+
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Update the headers
+          commit_options: '--signoff'
+          commit_user_name: GitHub Actions Bot
+          commit_user_email: actions@github.com
+          commit_author: GitHub Actions Bot <actions@github.com>
