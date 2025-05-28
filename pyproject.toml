@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: Contributors to the Power Grid Model project <powergridmodel@lfenergy.org>
+#
+# SPDX-License-Identifier: MPL-2.0
+
+[build-system]
+requires = [
+    "setuptools",
+    "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pgm-build-dependencies"
+version = "0.1.0"
+authors = [
+    { name = "Contributors to the Power Grid Model project", email = "powergridmodel@lfenergy.org" }
+]
+description = "Repackaging of all the header-only libraries to build Power Grid Model."
+readme = "README.md"
+license = "MPL-2.0"
+classifiers = [
+    "Programming Language :: C++",
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Topic :: File Formats",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "importlib-resources"
+]
+
+
+[project.optional-dependencies]
+dev = [
+    "pytest"
+]
+
+[project.urls]
+GitHub = "https://github.com/PowerGridModel/pgm-build-dependencies"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = true
+
+[tool.setuptools.package-data]
+all_headers = ["include/**/*"]
