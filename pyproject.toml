@@ -18,6 +18,7 @@ authors = [
 description = "Repackaging of all the header-only libraries to build Power Grid Model."
 readme = "README.md"
 license = "MPL-2.0"
+license-files = ["LICENSE", "LICENSES/*"]
 classifiers = [
     "Programming Language :: C++",
     "Development Status :: 5 - Production/Stable",
