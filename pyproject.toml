@@ -50,4 +50,4 @@ where = ["src"]
 namespaces = true
 
 [tool.setuptools.package-data]
-all_headers = ["include/**/*"]
+pgm_build_dependencies = ["include/**/*"]
