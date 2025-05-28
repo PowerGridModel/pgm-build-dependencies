@@ -30,7 +30,7 @@ header_path = pgm_build_dependencies.get_include()
 You can also get the path to the header-only libraries in command line:
 
 ```bash
-pgm_build_dependencies
+pgm-build-dependencies
 ```
 
 ## License
