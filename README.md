@@ -18,7 +18,7 @@ Given its limited applicability, we deliberately do not publish it to PyPI, but 
 ```toml
 [build-system]
 requires = [
-    "git+https://github.com/PowerGridModel/pgm-build-dependencies.git",
+    "pgm-build-dependencies@git+https://github.com/PowerGridModel/pgm-build-dependencies.git",
 ]
 ```
 
