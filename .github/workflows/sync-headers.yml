@@ -61,14 +61,13 @@ jobs:
           ls src/pgm_build_dependencies/eigen/
           ls src/pgm_build_dependencies/msgpack_cxx/
 
-      - name: License scan - eigen headers
+      - name: License scan - entire repository
         uses: fossology/fossology-action@v1
         continue-on-error: true
         with:
-          scan_mode: scan-dir
-          scanners: 'nomos ojo'
-          report_format: 'SPDX_JSON'
-          scan_dir: src/pgm_build_dependencies/eigen/
+            scan_mode: repo
+            scanners: 'nomos ojo'
+            report_format: 'SPDX_JSON'
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -87,11 +86,16 @@ jobs:
           fi
           echo "Found SPDX file: $SPDX_FILE"
           
-          # Get badly licensed files
+          # Get badly licensed files (excluding .git and .github directories)
+          echo "Extracting and deduplicating badly licensed files..."
           BAD_FILES=$(jq -r '
-            .files[] | 
-            select(.licenseInfoInFiles[]? | type == "string" and test("GPL"; "i")) | 
-            .fileName
+            [.files[] | 
+             select(.licenseInfoInFiles[]? | type == "string" and test("GPL"; "i")) | 
+             select(.fileName | test("^\\.git/") | not) |
+             select(.fileName | test("^\\.github/") | not) |
+             .fileName] | 
+            unique | 
+            .[]
           ' "$SPDX_FILE")
           
           if [ -z "$BAD_FILES" ]; then
@@ -102,13 +106,12 @@ jobs:
               if [ -n "$file_name" ]; then
                 echo " - $file_name"
                 
-                # Construct full path and delete
-                full_path="src/pgm_build_dependencies/eigen/$file_name"
-                if [ -f "$full_path" ]; then
-                  rm -f "$full_path"
-                  echo "Deleted: $full_path"
+                if [ -f "$file_name" ]; then
+                  rm -f "$file_name"
+                  echo "Deleted: $file_name"
                 else
-                  echo "File not found: $full_path"
+                  echo "File not found: $file_name"
+                  exit 1
                 fi
               fi
             done
@@ -118,8 +121,9 @@ jobs:
       - name: Check license cleanup status
         run: |
           if [ "${{ steps.license-cleanup.outcome }}" = "failure" ]; then
-            echo "WARNING: License cleanup step failed!"
-            echo "Please check the license scan results manually."
+            echo "ERROR: License cleanup step failed!"
+            echo "Terminating workflow due to license scanning issues."
+            exit 1
           else
             echo "License cleanup completed successfully"
           fi
@@ -141,6 +145,11 @@ jobs:
           echo "Event name: ${{ github.event_name }}"
           echo "Force publish input: ${{ inputs.force_publish }}"
           echo "Will commit on schedule or when force_publish is true: ${{ github.event_name == 'schedule' || inputs.force_publish }}"
+
+      - name: Check git status before commit
+        run: |
+          git status
+          git diff --name-only || echo "No differences found"
 
       - name: Commit and push changes
         if: ${{ github.event_name == 'schedule' || inputs.force_publish }}
