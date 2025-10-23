@@ -140,17 +140,6 @@ jobs:
           ls dist/
           echo "VERSION=v$(date +'%Y.%m.%d')" >> $GITHUB_ENV
 
-      - name: Debug workflow trigger
-        run: |
-          echo "Event name: ${{ github.event_name }}"
-          echo "Force publish input: ${{ inputs.force_publish }}"
-          echo "Will commit on schedule or when force_publish is true: ${{ github.event_name == 'schedule' || inputs.force_publish }}"
-
-      - name: Check git status before commit
-        run: |
-          git status
-          git diff --name-only || echo "No differences found"
-
       - name: Commit and push changes
         if: ${{ github.event_name == 'schedule' || inputs.force_publish }}
         id: commit
