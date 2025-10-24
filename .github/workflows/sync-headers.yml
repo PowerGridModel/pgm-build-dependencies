@@ -116,17 +116,9 @@ jobs:
               fi
             done
           fi
-        continue-on-error: true
 
-      - name: Check license cleanup status
-        run: |
-          if [ "${{ steps.license-cleanup.outcome }}" = "failure" ]; then
-            echo "ERROR: License cleanup step failed!"
-            echo "Terminating workflow due to license scanning issues."
-            exit 1
-          else
-            echo "License cleanup completed successfully"
-          fi
+      - name: License cleanup completed
+        run: echo "License cleanup completed successfully"
 
       - name: Upload Scan Results Artifact
         uses: actions/upload-artifact@v4
