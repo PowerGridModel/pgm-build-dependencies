@@ -61,6 +61,71 @@ jobs:
           ls src/pgm_build_dependencies/eigen/
           ls src/pgm_build_dependencies/msgpack_cxx/
 
+      - name: License scan - entire repository
+        uses: fossology/fossology-action@v1
+        continue-on-error: true
+        with:
+            scan_mode: repo
+            scanners: 'nomos ojo'
+            report_format: 'SPDX_JSON'
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Remove files with non-accepted license
+        id: license-cleanup
+        run: |          
+          # Find the SPDX JSON file
+          SPDX_FILE=$(find . -name "*spdx*.json" -o -name "sbom*.json" -o -name "*sbom.json"| head -1)
+          
+          if [ -z "$SPDX_FILE" ]; then
+            echo "No SPDX JSON file found! Fossology scan may have failed."
+            echo "Available files:"
+            find . -name "*.json" || echo "No JSON files found"
+            exit 1
+          fi
+          echo "Found SPDX file: $SPDX_FILE"
+          
+          # Get badly licensed files (excluding .git and .github directories)
+          echo "Extracting and deduplicating badly licensed files..."
+          BAD_FILES=$(jq -r '
+            [.files[] | 
+             select(.licenseInfoInFiles[]? | type == "string" and test("GPL"; "i")) | 
+             select(.fileName | test("^\\.git/") | not) |
+             select(.fileName | test("^\\.github/") | not) |
+             .fileName] | 
+            unique | 
+            .[]
+          ' "$SPDX_FILE")
+          
+          if [ -z "$BAD_FILES" ]; then
+            echo "No badly licensed files found - nothing to delete!"
+          else
+            echo "Badly licensed files found:"
+            echo "$BAD_FILES" | while read -r file_name; do
+              if [ -n "$file_name" ]; then
+                echo " - $file_name"
+                
+                if [ -f "$file_name" ]; then
+                  rm -f "$file_name"
+                  echo "Deleted: $file_name"
+                else
+                  echo "File not found: $file_name"
+                  exit 1
+                fi
+              fi
+            done
+          fi
+
+      - name: License cleanup completed
+        run: echo "License cleanup completed successfully"
+
+      - name: Upload Scan Results Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-scan-results
+          path: results/
+
       - name: build wheel
         run: |
           python -m build --wheel --outdir dist
@@ -68,6 +133,7 @@ jobs:
           echo "VERSION=v$(date +'%Y.%m.%d')" >> $GITHUB_ENV
 
       - name: Commit and push changes
+        if: ${{ github.event_name == 'schedule' || inputs.force_publish }}
         id: commit
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
@@ -78,7 +144,7 @@ jobs:
           commit_author: GitHub Actions Bot <actions@github.com>
 
       - name: publish
-        if: ${{ inputs.force_publish || steps.commit.outputs.changes_detected == 'true'  }}
+        if: ${{ inputs.force_publish || (steps.commit.outputs.changes_detected == 'true' && github.event_name == 'schedule') }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.VERSION }}
