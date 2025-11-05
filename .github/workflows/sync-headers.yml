@@ -43,6 +43,7 @@ jobs:
 
       - name: Install brew
         run: |
+           brew update
            brew install nlohmann-json boost eigen msgpack-cxx
 
       - name: copy headers
