@@ -14,7 +14,7 @@
 # - 3 matches 3.0.0.0 to <4.0.0.0
 # - 3.4 matches 3.4.0.0 to <3.5.0.0
 
-set(PACKAGE_VERSION "5.0.0")
+set(PACKAGE_VERSION "5.0.1")
 
 # Extract version components.
 if ("${PACKAGE_VERSION}" MATCHES "^([0-9]+)(\\.([0-9]+))?(\\.([0-9]+))?(\\.([0-9]+))?$")
