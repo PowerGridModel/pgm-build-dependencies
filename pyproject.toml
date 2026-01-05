@@ -29,12 +29,6 @@ classifiers = [
 dependencies = []
 requires-python = ">=3.11"
 
-
-[project.optional-dependencies]
-dev = [
-    "pytest"
-]
-
 [project.urls]
 GitHub = "https://github.com/PowerGridModel/pgm-build-dependencies"
 

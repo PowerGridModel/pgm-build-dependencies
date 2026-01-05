@@ -177,3 +177,6 @@ cython_debug/
 
 INSTALL_RECEIPT.json
 sbom.spdx.json
+
+# we do not need to check-in lock files for package managers
+uv.lock
