@@ -38,3 +38,7 @@ Eigen3 = "pgm_build_dependencies.eigen"
 nlohmann_json = "pgm_build_dependencies.nlohmann_json"
 msgpack-cxx = "pgm_build_dependencies.msgpack_cxx"
 doctest = "pgm_build_dependencies.doctest"
+
+
+[project.scripts]
+pgm-build-setup-ga-ci = "pgm_build_dependencies.setup_ga_ci:setup_ga_ci"
