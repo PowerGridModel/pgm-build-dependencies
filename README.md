@@ -15,6 +15,8 @@ The GitHub Actions automatically fetches the latest versions of the header-only 
 This package should be part of build dependencies of the Power Grid Model project.
 Given its limited applicability, we deliberately do not publish it to PyPI, but instead use a GitHub release artifact to store the wheel file.
 
+### As build dependency for Python
+
 ```toml
 [build-system]
 requires = [
@@ -23,6 +25,21 @@ requires = [
 ```
 
 In the build process, the entry point `cmake.root` will be installed into the build environment. The build backend, e.g., [`scikit-build-core`](https://github.com/scikit-build/scikit-build-core), can retrieve the `cmake` search paths and use them when invoking `cmake`.
+
+### Load into CI for C++ build
+
+```yaml
+steps:
+    - name: Install uv
+        uses: astral-sh/setup-uv@v5
+    
+    - name: Install pgm-build-dependencies
+        run: |
+            uv tool install https://github.com/PowerGridModel/pgm-build-dependencies/releases/latest/download/pgm_build_dependencies-0.1.0-py3-none-any.whl
+            pgm-build-setup-ga-ci
+```
+
+After setting this in your GitHub Actions CI, the follow-up `cmake` calls will find the packages.
 
 ## License
 
