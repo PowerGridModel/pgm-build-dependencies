@@ -10,7 +10,7 @@ build-backend = "hatchling.build"
 name = "pgm-build-dependencies"
 version = "0.1.0"
 authors = [
-    { name = "Contributors to the Power Grid Model project", email = "powergridmodel@lfenergy.org" }
+    { name = "Contributors to the Power Grid Model project", email = "powergridmodel@lfenergy.org" },
 ]
 description = "Repackaging of all the header-only libraries to build Power Grid Model."
 readme = "README.md"
@@ -37,3 +37,4 @@ Boost = "pgm_build_dependencies.boost"
 Eigen3 = "pgm_build_dependencies.eigen"
 nlohmann_json = "pgm_build_dependencies.nlohmann_json"
 msgpack-cxx = "pgm_build_dependencies.msgpack_cxx"
+doctest = "pgm_build_dependencies.doctest"

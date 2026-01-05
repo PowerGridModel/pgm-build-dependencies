@@ -44,7 +44,7 @@ jobs:
       - name: Install brew
         run: |
            brew update
-           brew install nlohmann-json boost eigen msgpack-cxx
+           brew install nlohmann-json boost eigen msgpack-cxx doctest
 
       - name: copy headers
         run: |
@@ -52,15 +52,18 @@ jobs:
           rm -rf src/pgm_build_dependencies/boost/*
           rm -rf src/pgm_build_dependencies/eigen/*
           rm -rf src/pgm_build_dependencies/msgpack_cxx/*
+          rm -rf src/pgm_build_dependencies/doctest/*
           cp -r /home/linuxbrew/.linuxbrew/Cellar/nlohmann-json/*/* src/pgm_build_dependencies/nlohmann_json/
           cp -r /home/linuxbrew/.linuxbrew/Cellar/boost/*/* src/pgm_build_dependencies/boost/
           cp -r /home/linuxbrew/.linuxbrew/Cellar/eigen/*/* src/pgm_build_dependencies/eigen/
           cp -r /home/linuxbrew/.linuxbrew/Cellar/msgpack-cxx/*/* src/pgm_build_dependencies/msgpack_cxx/
+          cp -r /home/linuxbrew/.linuxbrew/Cellar/doctest/*/* src/pgm_build_dependencies/doctest/
           find src/ \( -type f ! -exec grep -Iq . {} \; -o -type l \) -delete
           ls src/pgm_build_dependencies/nlohmann_json/
           ls src/pgm_build_dependencies/boost/
           ls src/pgm_build_dependencies/eigen/
           ls src/pgm_build_dependencies/msgpack_cxx/
+          ls src/pgm_build_dependencies/doctest/
 
       - name: License scan - entire repository
         uses: fossology/fossology-action@v1
