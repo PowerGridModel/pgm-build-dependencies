@@ -29,14 +29,14 @@ In the build process, the entry point `cmake.root` will be installed into the bu
 ### Load into CI for C++ build
 
 ```yaml
-steps:
-    - name: Install uv
+    steps:
+      - name: Install uv
         uses: astral-sh/setup-uv@v5
-    
-    - name: Install pgm-build-dependencies
+      
+      - name: Install pgm-build-dependencies
         run: |
-            uv tool install https://github.com/PowerGridModel/pgm-build-dependencies/releases/latest/download/pgm_build_dependencies-0.1.0-py3-none-any.whl
-            pgm-build-setup-ga-ci
+          uv tool install https://github.com/PowerGridModel/pgm-build-dependencies/releases/latest/download/pgm_build_dependencies-0.1.0-py3-none-any.whl
+          pgm-build-setup-ga-ci
 ```
 
 After setting this in your GitHub Actions CI, the follow-up `cmake` calls will find the packages.
