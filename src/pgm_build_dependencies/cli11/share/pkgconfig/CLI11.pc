@@ -1,0 +1,9 @@
+prefix=/home/linuxbrew/.linuxbrew/Cellar/cli11/2.6.1
+exec_prefix=${prefix}
+includedir=${prefix}/include
+
+Name: CLI11
+Description: C++ command line parser
+Version: 2.6.1
+
+Cflags: -I${includedir}
