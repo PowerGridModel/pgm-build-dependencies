@@ -38,6 +38,7 @@ Eigen3 = "pgm_build_dependencies.eigen"
 nlohmann_json = "pgm_build_dependencies.nlohmann_json"
 msgpack-cxx = "pgm_build_dependencies.msgpack_cxx"
 doctest = "pgm_build_dependencies.doctest"
+CLI11 = "pgm_build_dependencies.cli11"
 
 
 [project.scripts]
