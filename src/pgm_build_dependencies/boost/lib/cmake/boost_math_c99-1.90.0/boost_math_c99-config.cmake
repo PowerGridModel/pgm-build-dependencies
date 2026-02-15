@@ -15,10 +15,10 @@ mark_as_advanced(boost_math_c99_DIR)
 get_filename_component(_BOOST_CMAKEDIR "${CMAKE_CURRENT_LIST_DIR}/../" REALPATH)
 
 # If the computed and the original directories are symlink-equivalent, use original
-if(EXISTS "/home/linuxbrew/.linuxbrew/Cellar/boost/1.90.0/lib/cmake")
-  get_filename_component(_BOOST_CMAKEDIR_ORIGINAL "/home/linuxbrew/.linuxbrew/Cellar/boost/1.90.0/lib/cmake" REALPATH)
+if(EXISTS "/home/linuxbrew/.linuxbrew/Cellar/boost/1.90.0_1/lib/cmake")
+  get_filename_component(_BOOST_CMAKEDIR_ORIGINAL "/home/linuxbrew/.linuxbrew/Cellar/boost/1.90.0_1/lib/cmake" REALPATH)
   if(_BOOST_CMAKEDIR STREQUAL _BOOST_CMAKEDIR_ORIGINAL)
-    set(_BOOST_CMAKEDIR "/home/linuxbrew/.linuxbrew/Cellar/boost/1.90.0/lib/cmake")
+    set(_BOOST_CMAKEDIR "/home/linuxbrew/.linuxbrew/Cellar/boost/1.90.0_1/lib/cmake")
   endif()
   unset(_BOOST_CMAKEDIR_ORIGINAL)
 endif()
