@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2025, University of Cincinnati, developed by Henry Schreiner
+// Copyright (c) 2017-2026, University of Cincinnati, developed by Henry Schreiner
 // under NSF AWARD 1414736 and by the respective contributors.
 // All rights reserved.
 //
@@ -66,9 +66,26 @@ CLI11_INLINE std::string simple(const App *app, const Error &e);
 CLI11_INLINE std::string help(const App *app, const Error &e);
 }  // namespace FailureMessage
 
-/// enumeration of modes of how to deal with extras in config files
+/// enumeration of modes of how to deal with command line extras
+enum class ExtrasMode : std::uint8_t {
+    Error = 0,
+    ErrorImmediately,
+    Ignore,
+    AssumeSingleArgument,
+    AssumeMultipleArguments,
+    Capture
+};
 
+/// enumeration of modes of how to deal with extras in config files
+enum class ConfigExtrasMode : std::uint8_t { Error = 0, Ignore, IgnoreAll, Capture };
+
+/// @brief  enumeration of modes of how to deal with extras in config files
 enum class config_extras_mode : std::uint8_t { error = 0, ignore, ignore_all, capture };
+
+/// @brief  enumeration of prefix command modes, separator requires that the first extra argument be a "--", other
+/// unrecognized arguments will cause an error. on allows the first extra to trigger prefix mode regardless of other
+/// recognized options
+enum class PrefixCommandMode : std::uint8_t { Off = 0, SeparatorOnly = 1, On = 2 };
 
 class App;
 
@@ -112,14 +129,14 @@ class App {
     std::string description_{};
 
     /// If true, allow extra arguments (ie, don't throw an error). INHERITABLE
-    bool allow_extras_{false};
+    ExtrasMode allow_extras_{ExtrasMode::Error};
 
     /// If ignore, allow extra arguments in the ini file (ie, don't throw an error). INHERITABLE
     /// if error, error on an extra argument, and if capture feed it to the app
-    config_extras_mode allow_config_extras_{config_extras_mode::ignore};
+    ConfigExtrasMode allow_config_extras_{ConfigExtrasMode::Ignore};
 
     ///  If true, cease processing on an unrecognized option (implies allow_extras) INHERITABLE
-    bool prefix_command_{false};
+    PrefixCommandMode prefix_command_{PrefixCommandMode::Off};
 
     /// If set to true the name was automatically generated from the command line vs a user set name
     bool has_automatic_name_{false};
@@ -384,6 +401,12 @@ class App {
 
     /// Remove the error when extras are left over on the command line.
     App *allow_extras(bool allow = true) {
+        allow_extras_ = allow ? ExtrasMode::Capture : ExtrasMode::Error;
+        return this;
+    }
+
+    /// Remove the error when extras are left over on the command line.
+    App *allow_extras(ExtrasMode allow) {
         allow_extras_ = allow;
         return this;
     }
@@ -457,16 +480,22 @@ class App {
     /// ignore extras in config files
     App *allow_config_extras(bool allow = true) {
         if(allow) {
-            allow_config_extras_ = config_extras_mode::capture;
-            allow_extras_ = true;
+            allow_config_extras_ = ConfigExtrasMode::Capture;
+            allow_extras_ = ExtrasMode::Capture;
         } else {
-            allow_config_extras_ = config_extras_mode::error;
+            allow_config_extras_ = ConfigExtrasMode::Error;
         }
         return this;
     }
 
     /// ignore extras in config files
     App *allow_config_extras(config_extras_mode mode) {
+        allow_config_extras_ = static_cast<ConfigExtrasMode>(mode);
+        return this;
+    }
+
+    /// ignore extras in config files
+    App *allow_config_extras(ConfigExtrasMode mode) {
         allow_config_extras_ = mode;
         return this;
     }
@@ -474,7 +503,14 @@ class App {
     /// Do not parse anything after the first unrecognized option (if true) all remaining arguments are stored in
     /// remaining args
     App *prefix_command(bool is_prefix = true) {
-        prefix_command_ = is_prefix;
+        prefix_command_ = is_prefix ? PrefixCommandMode::On : PrefixCommandMode::Off;
+        return this;
+    }
+
+    /// Do not parse anything after the first unrecognized option (if true) all remaining arguments are stored in
+    /// remaining args
+    App *prefix_command(PrefixCommandMode mode) {
+        prefix_command_ = mode;
         return this;
     }
 
@@ -1101,7 +1137,7 @@ class App {
     }
 
     /// Get an option by name (non-const version)
-    Option *get_option(std::string option_name) {
+    CLI11_NODISCARD Option *get_option(std::string option_name) {
         auto *opt = get_option_no_throw(option_name);
         if(opt == nullptr) {
             throw OptionNotFound(option_name);
@@ -1162,10 +1198,16 @@ class App {
     CLI11_NODISCARD std::size_t get_require_option_max() const { return require_option_max_; }
 
     /// Get the prefix command status
-    CLI11_NODISCARD bool get_prefix_command() const { return prefix_command_; }
+    CLI11_NODISCARD bool get_prefix_command() const { return static_cast<bool>(prefix_command_); }
+
+    /// Get the prefix command status
+    CLI11_NODISCARD PrefixCommandMode get_prefix_command_mode() const { return prefix_command_; }
 
     /// Get the status of allow extras
-    CLI11_NODISCARD bool get_allow_extras() const { return allow_extras_; }
+    CLI11_NODISCARD bool get_allow_extras() const { return allow_extras_ > ExtrasMode::Ignore; }
+
+    /// Get the mode of allow_extras
+    CLI11_NODISCARD ExtrasMode get_allow_extras_mode() const { return allow_extras_; }
 
     /// Get the status of required
     CLI11_NODISCARD bool get_required() const { return required_; }
@@ -1196,7 +1238,9 @@ class App {
     CLI11_NODISCARD bool get_validate_optional_arguments() const { return validate_optional_arguments_; }
 
     /// Get the status of allow extras
-    CLI11_NODISCARD config_extras_mode get_allow_config_extras() const { return allow_config_extras_; }
+    CLI11_NODISCARD config_extras_mode get_allow_config_extras() const {
+        return static_cast<config_extras_mode>(allow_config_extras_);
+    }
 
     /// Get a pointer to the help flag.
     Option *get_help_ptr() { return help_ptr_; }
@@ -1319,10 +1363,6 @@ class App {
     /// Throw an error if anything is left over and should not be.
     void _process_extras();
 
-    /// Throw an error if anything is left over and should not be.
-    /// Modifies the args to fill in the missing items before throwing.
-    void _process_extras(std::vector<std::string> &args);
-
     /// Internal function to recursively increment the parsed counter on the current app as well unnamed subcommands
     void increment_parsed();
 
@@ -1382,7 +1422,10 @@ class App {
     void _trigger_pre_parse(std::size_t remaining_args);
 
     /// Get the appropriate parent to fallthrough to which is the first one that has a name or the main app
-    App *_get_fallthrough_parent();
+    CLI11_NODISCARD App *_get_fallthrough_parent() noexcept;
+
+    /// Get the appropriate parent to fallthrough to which is the first one that has a name or the main app
+    CLI11_NODISCARD const App *_get_fallthrough_parent() const noexcept;
 
     /// Helper function to run through all possible comparisons of subcommand names to check there is no overlap
     CLI11_NODISCARD const std::string &_compare_subcommand_names(const App &subcom, const App &base) const;
@@ -1504,6 +1547,9 @@ struct AppFriend {
 #endif
     /// Wrap the fallthrough parent function to make sure that is working correctly
     static App *get_fallthrough_parent(App *app) { return app->_get_fallthrough_parent(); }
+
+    /// Wrap the const fallthrough parent function to make sure that is working correctly
+    static const App *get_fallthrough_parent(const App *app) { return app->_get_fallthrough_parent(); }
 };
 }  // namespace detail
 

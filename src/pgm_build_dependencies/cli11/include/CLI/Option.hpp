@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2025, University of Cincinnati, developed by Henry Schreiner
+// Copyright (c) 2017-2026, University of Cincinnati, developed by Henry Schreiner
 // under NSF AWARD 1414736 and by the respective contributors.
 // All rights reserved.
 //
@@ -657,8 +657,10 @@ class Option : public OptionBase<Option> {
     /// Will include / prefer the positional name if positional is true.
     /// If all_options is false, pick just the most descriptive name to show.
     /// Use `get_name(true)` to get the positional name (replaces `get_pname`)
-    CLI11_NODISCARD std::string get_name(bool positional = false,  ///< Show the positional name
-                                         bool all_options = false  ///< Show every option
+    /// if disable_default_flag_values is true, do not include the default values for flags such as `--no-flag{false}`
+    CLI11_NODISCARD std::string get_name(bool positional = false,                  ///< Show the positional name
+                                         bool all_options = false,                 ///< Show every option
+                                         bool disable_default_flag_values = false  ///< Disable default values in name
     ) const;
 
     ///@}
@@ -813,7 +815,7 @@ class Option : public OptionBase<Option> {
     /// Set the default value and validate the results and run the callback if appropriate to set the value into the
     /// bound value only available for types that can be converted to a string
     template <typename X> Option *default_val(const X &val) {
-        std::string val_str = detail::to_string(val);
+        std::string val_str = detail::value_string(val);
         auto old_option_state = current_option_state_;
         results_t old_results{std::move(results_)};
         results_.clear();

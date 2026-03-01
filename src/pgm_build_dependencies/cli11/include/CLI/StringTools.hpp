@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2025, University of Cincinnati, developed by Henry Schreiner
+// Copyright (c) 2017-2026, University of Cincinnati, developed by Henry Schreiner
 // under NSF AWARD 1414736 and by the respective contributors.
 // All rights reserved.
 //
@@ -45,7 +45,7 @@ using enums::operator<<;
 namespace detail {
 /// a constant defining an expected max vector size defined to be a big number that could be multiplied by 4 and not
 /// produce overflow for some expected uses
-constexpr int expected_max_vector_size{1 << 29};
+CLI11_MODULE_INLINE constexpr int expected_max_vector_size{1 << 29};
 // Based on http://stackoverflow.com/questions/236129/split-a-string-in-c
 /// Split a string by a delim
 CLI11_INLINE std::vector<std::string> split(const std::string &s, char delim);

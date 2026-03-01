@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2025, University of Cincinnati, developed by Henry Schreiner
+// Copyright (c) 2017-2026, University of Cincinnati, developed by Henry Schreiner
 // under NSF AWARD 1414736 and by the respective contributors.
 // All rights reserved.
 //
@@ -368,7 +368,7 @@ CLI11_INLINE std::string Formatter::make_option_name(const Option *opt, bool is_
     if(is_positional)
         return opt->get_name(true, false);
 
-    return opt->get_name(false, true);
+    return opt->get_name(false, true, !enable_default_flag_values_);
 }
 
 CLI11_INLINE std::string Formatter::make_option_opts(const Option *opt) const {
@@ -378,10 +378,14 @@ CLI11_INLINE std::string Formatter::make_option_opts(const Option *opt) const {
         out << " " << opt->get_option_text();
     } else {
         if(opt->get_type_size() != 0) {
-            if(!opt->get_type_name().empty())
-                out << " " << get_label(opt->get_type_name());
-            if(!opt->get_default_str().empty())
-                out << " [" << opt->get_default_str() << "] ";
+            if(enable_option_type_names_) {
+                if(!opt->get_type_name().empty())
+                    out << " " << get_label(opt->get_type_name());
+            }
+            if(enable_option_defaults_) {
+                if(!opt->get_default_str().empty())
+                    out << " [" << opt->get_default_str() << "] ";
+            }
             if(opt->get_expected_max() == detail::expected_max_vector_size)
                 out << " ...";
             else if(opt->get_expected_min() > 1)

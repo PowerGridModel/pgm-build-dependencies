@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2025, University of Cincinnati, developed by Henry Schreiner
+// Copyright (c) 2017-2026, University of Cincinnati, developed by Henry Schreiner
 // under NSF AWARD 1414736 and by the respective contributors.
 // All rights reserved.
 //
@@ -95,7 +95,7 @@ class Bound : public Validator {
 // Static is not needed here, because global const implies static.
 
 /// Check for an IP4 address
-const detail::IPV4Validator ValidIPV4;
+CLI11_MODULE_INLINE const detail::IPV4Validator ValidIPV4;
 
 namespace detail {
 template <typename T,
@@ -358,7 +358,9 @@ class CheckedTransformer : public Validator {
             out += detail::generate_map(detail::smart_deref(mapping)) + " OR {";
             out += detail::join(
                 detail::smart_deref(mapping),
-                [](const iteration_type_t &v) { return detail::to_string(detail::pair_adaptor<element_t>::second(v)); },
+                [](const iteration_type_t &v) {
+                    return detail::value_string(detail::pair_adaptor<element_t>::second(v));
+                },
                 ",");
             out.push_back('}');
             return out;

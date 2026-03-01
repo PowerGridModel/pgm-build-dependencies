@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2025, University of Cincinnati, developed by Henry Schreiner
+// Copyright (c) 2017-2026, University of Cincinnati, developed by Henry Schreiner
 // under NSF AWARD 1414736 and by the respective contributors.
 // All rights reserved.
 //
@@ -185,10 +185,10 @@ find_member(std::string name, const std::vector<std::string> names, bool ignore_
     return (it != std::end(names)) ? (it - std::begin(names)) : (-1);
 }
 
-static const std::string escapedChars("\b\t\n\f\r\"\\");
-static const std::string escapedCharsCode("btnfr\"\\");
-static const std::string bracketChars{"\"'`[(<{"};
-static const std::string matchBracketChars("\"'`])>}");
+CLI11_MODULE_INLINE const std::string &escapedChars("\b\t\n\f\r\"\\");
+CLI11_MODULE_INLINE const std::string &escapedCharsCode("btnfr\"\\");
+CLI11_MODULE_INLINE const std::string &bracketChars("\"'`[(<{");
+CLI11_MODULE_INLINE const std::string &matchBracketChars("\"'`])>}");
 
 CLI11_INLINE bool has_escapable_character(const std::string &str) {
     return (str.find_first_of(escapedChars) != std::string::npos);
@@ -574,11 +574,11 @@ process_quoted_string(std::string &str, char string_char, char literal_char, boo
 }
 
 std::string get_environment_value(const std::string &env_name) {
-    char *buffer = nullptr;
     std::string ename_string;
 
 #ifdef _MSC_VER
     // Windows version
+    char *buffer = nullptr;
     std::size_t sz = 0;
     if(_dupenv_s(&buffer, &sz, env_name.c_str()) == 0 && buffer != nullptr) {
         ename_string = std::string(buffer);
@@ -586,6 +586,9 @@ std::string get_environment_value(const std::string &env_name) {
     }
 #else
     // This also works on Windows, but gives a warning
+
+    // MISRA static analysis need. MISRACPP2023-25_5_2-a-1
+    const char *buffer = nullptr;
     buffer = std::getenv(env_name.c_str());
     if(buffer != nullptr) {
         ename_string = std::string(buffer);
@@ -610,13 +613,17 @@ CLI11_INLINE std::ostream &streamOutAsParagraph(std::ostream &out,
         std::size_t charsWritten = 0;
 
         while(iss >> word) {
-            if(word.length() + charsWritten > paragraphWidth) {
+            if(charsWritten > 0 && (word.length() + 1 + charsWritten > paragraphWidth)) {
                 out << '\n' << linePrefix;
                 charsWritten = 0;
             }
-
-            out << word << " ";
-            charsWritten += word.length() + 1;
+            if(charsWritten == 0) {
+                out << word;
+                charsWritten += word.length();
+            } else {
+                out << ' ' << word;
+                charsWritten += word.length() + 1;
+            }
         }
 
         if(!lss.eof())

@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2025, University of Cincinnati, developed by Henry Schreiner
+// Copyright (c) 2017-2026, University of Cincinnati, developed by Henry Schreiner
 // under NSF AWARD 1414736 and by the respective contributors.
 // All rights reserved.
 //
@@ -36,7 +36,7 @@ namespace detail {
 enum class enabler : std::uint8_t {};
 
 /// An instance to use in EnableIf
-constexpr enabler dummy = {};
+CLI11_MODULE_INLINE constexpr enabler dummy = {};
 }  // namespace detail
 
 /// A copy of enable_if_t from C++14, compatible with C++11.
@@ -544,7 +544,8 @@ template <typename T, std::size_t I>
 }
 
 /// Get the type size of the sum of type sizes for all the individual tuple types
-template <typename T> struct type_count<T, typename std::enable_if<is_tuple_like<T>::value>::type> {
+template <typename T>
+struct type_count<T, typename std::enable_if<is_tuple_like<T>::value && !is_complex<T>::value>::type> {
     static constexpr int value{tuple_type_size<T, 0>()};
 };
 
@@ -593,7 +594,8 @@ template <typename T, std::size_t I>
 }
 
 /// Get the type size of the sum of type sizes for all the individual tuple types
-template <typename T> struct type_count_min<T, typename std::enable_if<is_tuple_like<T>::value>::type> {
+template <typename T>
+struct type_count_min<T, typename std::enable_if<is_tuple_like<T>::value && !is_complex<T>::value>::type> {
     static constexpr int value{tuple_type_size_min<T, 0>()};
 };
 

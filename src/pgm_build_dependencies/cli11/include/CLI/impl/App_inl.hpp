@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2025, University of Cincinnati, developed by Henry Schreiner
+// Copyright (c) 2017-2026, University of Cincinnati, developed by Henry Schreiner
 // under NSF AWARD 1414736 and by the respective contributors.
 // All rights reserved.
 //
@@ -848,6 +848,17 @@ CLI11_INLINE std::vector<const Option *> App::get_options(const std::function<bo
             options.insert(options.end(), subcopts.begin(), subcopts.end());
         }
     }
+    if(fallthrough_ && parent_ != nullptr) {
+        const auto *fallthrough_parent = _get_fallthrough_parent();
+        std::vector<const Option *> subcopts = fallthrough_parent->get_options(filter);
+        for(const auto *opt : subcopts) {
+            if(std::find_if(options.begin(), options.end(), [opt](const Option *opt2) {
+                   return opt->check_name(opt2->get_name());
+               }) == options.end()) {
+                options.push_back(opt);
+            }
+        }
+    }
     return options;
 }
 
@@ -868,6 +879,17 @@ CLI11_INLINE std::vector<Option *> App::get_options(const std::function<bool(Opt
             options.insert(options.end(), subcopts.begin(), subcopts.end());
         }
     }
+    if(fallthrough_ && parent_ != nullptr) {
+        auto *fallthrough_parent = _get_fallthrough_parent();
+        std::vector<Option *> subcopts = fallthrough_parent->get_options(filter);
+        for(auto *opt : subcopts) {
+            if(std::find_if(options.begin(), options.end(), [opt](Option *opt2) {
+                   return opt->check_name(opt2->get_name());
+               }) == options.end()) {
+                options.push_back(opt);
+            }
+        }
+    }
     return options;
 }
 
@@ -886,6 +908,9 @@ CLI11_NODISCARD CLI11_INLINE Option *App::get_option_no_throw(std::string option
             }
         }
     }
+    if(fallthrough_ && parent_ != nullptr) {
+        return _get_fallthrough_parent()->get_option_no_throw(option_name);
+    }
     return nullptr;
 }
 
@@ -903,6 +928,9 @@ CLI11_NODISCARD CLI11_INLINE const Option *App::get_option_no_throw(std::string 
                 return opt;
             }
         }
+    }
+    if(fallthrough_ && parent_ != nullptr) {
+        return _get_fallthrough_parent()->get_option_no_throw(option_name);
     }
     return nullptr;
 }
@@ -986,7 +1014,7 @@ CLI11_NODISCARD CLI11_INLINE std::vector<std::string> App::remaining(bool recurs
     }
     // Get from a subcommand that may allow extras
     if(recurse) {
-        if(!allow_extras_) {
+        if(allow_extras_ == ExtrasMode::Error || allow_extras_ == ExtrasMode::Ignore) {
             for(const auto &sub : subcommands_) {
                 if(sub->name_.empty() && !sub->missing_.empty()) {
                     for(const std::pair<detail::Classifier, std::string> &miss : sub->missing_) {
@@ -1072,7 +1100,7 @@ CLI11_INLINE void App::_configure() {
         }
         if(app->name_.empty()) {
             app->fallthrough_ = false;  // make sure fallthrough_ is false to prevent infinite loop
-            app->prefix_command_ = false;
+            app->prefix_command_ = PrefixCommandMode::Off;
         }
         // make sure the parent is set to be this object in preparation for parse
         app->parent_ = this;
@@ -1272,15 +1300,18 @@ CLI11_INLINE void App::_process_help_flags(CallbackPriority priority, bool trigg
     const Option *help_ptr = get_help_ptr();
     const Option *help_all_ptr = get_help_all_ptr();
 
-    if(help_ptr != nullptr && help_ptr->count() > 0 && help_ptr->get_callback_priority() == priority)
+    if(help_ptr != nullptr && help_ptr->count() > 0 && help_ptr->get_callback_priority() == priority) {
         trigger_help = true;
-    if(help_all_ptr != nullptr && help_all_ptr->count() > 0 && help_all_ptr->get_callback_priority() == priority)
+    }
+    if(help_all_ptr != nullptr && help_all_ptr->count() > 0 && help_all_ptr->get_callback_priority() == priority) {
         trigger_all_help = true;
+    }
 
     // If there were parsed subcommands, call those. First subcommand wins if there are multiple ones.
     if(!parsed_subcommands_.empty()) {
-        for(const App *sub : parsed_subcommands_)
+        for(const App *sub : parsed_subcommands_) {
             sub->_process_help_flags(priority, trigger_help, trigger_all_help);
+        }
 
         // Only the final subcommand should call for help. All help wins over help.
     } else if(trigger_all_help) {
@@ -1458,31 +1489,23 @@ CLI11_INLINE void App::_process() {
 }
 
 CLI11_INLINE void App::_process_extras() {
-    if(!(allow_extras_ || prefix_command_)) {
+    if(allow_extras_ == ExtrasMode::Error && prefix_command_ == PrefixCommandMode::Off) {
         std::size_t num_left_over = remaining_size();
         if(num_left_over > 0) {
             throw ExtrasError(name_, remaining(false));
         }
     }
-
+    if(allow_extras_ == ExtrasMode::Error && prefix_command_ == PrefixCommandMode::SeparatorOnly) {
+        std::size_t num_left_over = remaining_size();
+        if(num_left_over > 0) {
+            if(remaining(false).front() != "--") {
+                throw ExtrasError(name_, remaining(false));
+            }
+        }
+    }
     for(App_p &sub : subcommands_) {
         if(sub->count() > 0)
             sub->_process_extras();
-    }
-}
-
-CLI11_INLINE void App::_process_extras(std::vector<std::string> &args) {
-    if(!(allow_extras_ || prefix_command_)) {
-        std::size_t num_left_over = remaining_size();
-        if(num_left_over > 0) {
-            args = remaining(false);
-            throw ExtrasError(name_, args);
-        }
-    }
-
-    for(App_p &sub : subcommands_) {
-        if(sub->count() > 0)
-            sub->_process_extras(args);
     }
 }
 
@@ -1509,8 +1532,7 @@ CLI11_INLINE void App::_parse(std::vector<std::string> &args) {
         _process();
 
         // Throw error if any items are left over (depending on settings)
-        _process_extras(args);
-
+        _process_extras();
         // Convert missing (pairs) to extras (string only) ready for processing in another app
         args = remaining_for_passthrough(false);
     } else if(parse_complete_callback_) {
@@ -1561,7 +1583,7 @@ CLI11_INLINE void App::_parse_stream(std::istream &input) {
 
 CLI11_INLINE void App::_parse_config(const std::vector<ConfigItem> &args) {
     for(const ConfigItem &item : args) {
-        if(!_parse_single_config(item) && allow_config_extras_ == config_extras_mode::error)
+        if(!_parse_single_config(item) && allow_config_extras_ == ConfigExtrasMode::Error)
             throw ConfigError::Extras(item.fullname());
     }
 }
@@ -1735,7 +1757,14 @@ CLI11_INLINE bool App::_parse_single(std::vector<std::string> &args, bool &posit
     case detail::Classifier::POSITIONAL_MARK:
         args.pop_back();
         positional_only = true;
-        if((!_has_remaining_positionals()) && (parent_ != nullptr)) {
+        if(get_prefix_command()) {
+            // don't care about extras mode here
+            missing_.emplace_back(classifier, "--");
+            while(!args.empty()) {
+                missing_.emplace_back(detail::Classifier::NONE, args.back());
+                args.pop_back();
+            }
+        } else if((!_has_remaining_positionals()) && (parent_ != nullptr)) {
             retval = false;
         } else {
             _move_to_missing(classifier, "--");
@@ -1919,9 +1948,9 @@ CLI11_INLINE bool App::_parse_positional(std::vector<std::string> &args, bool ha
     /// We are out of other options this goes to missing
     _move_to_missing(detail::Classifier::NONE, positional);
     args.pop_back();
-    if(prefix_command_) {
+    if(get_prefix_command()) {
         while(!args.empty()) {
-            _move_to_missing(detail::Classifier::NONE, args.back());
+            missing_.emplace_back(detail::Classifier::NONE, args.back());
             args.pop_back();
         }
     }
@@ -2148,6 +2177,22 @@ App::_parse_arg(std::vector<std::string> &args, detail::Classifier current_type,
         // Otherwise, add to missing
         args.pop_back();
         _move_to_missing(current_type, current);
+        if(get_prefix_command_mode() == PrefixCommandMode::On) {
+            while(!args.empty()) {
+                missing_.emplace_back(detail::Classifier::NONE, args.back());
+                args.pop_back();
+            }
+        } else if(allow_extras_ == ExtrasMode::AssumeSingleArgument) {
+            if(!args.empty() && _recognize(args.back(), false) == detail::Classifier::NONE) {
+                _move_to_missing(detail::Classifier::NONE, args.back());
+                args.pop_back();
+            }
+        } else if(allow_extras_ == ExtrasMode::AssumeMultipleArguments) {
+            while(!args.empty() && _recognize(args.back(), false) == detail::Classifier::NONE) {
+                _move_to_missing(detail::Classifier::NONE, args.back());
+                args.pop_back();
+            }
+        }
         return true;
     }
 
@@ -2274,11 +2319,22 @@ CLI11_INLINE void App::_trigger_pre_parse(std::size_t remaining_args) {
     }
 }
 
-CLI11_INLINE App *App::_get_fallthrough_parent() {
+CLI11_INLINE App *App::_get_fallthrough_parent() noexcept {
     if(parent_ == nullptr) {
-        throw(HorribleError("No Valid parent"));
+        return nullptr;
     }
     auto *fallthrough_parent = parent_;
+    while((fallthrough_parent->parent_ != nullptr) && (fallthrough_parent->get_name().empty())) {
+        fallthrough_parent = fallthrough_parent->parent_;
+    }
+    return fallthrough_parent;
+}
+
+CLI11_INLINE const App *App::_get_fallthrough_parent() const noexcept {
+    if(parent_ == nullptr) {
+        return nullptr;
+    }
+    const auto *fallthrough_parent = parent_;
     while((fallthrough_parent->parent_ != nullptr) && (fallthrough_parent->get_name().empty())) {
         fallthrough_parent = fallthrough_parent->parent_;
     }
@@ -2336,20 +2392,31 @@ CLI11_NODISCARD CLI11_INLINE const std::string &App::_compare_subcommand_names(c
     return estring;
 }
 
+inline bool capture_extras(ExtrasMode mode) {
+    return mode == ExtrasMode::Capture || mode == ExtrasMode::AssumeSingleArgument ||
+           mode == ExtrasMode::AssumeMultipleArguments;
+}
 CLI11_INLINE void App::_move_to_missing(detail::Classifier val_type, const std::string &val) {
-    if(allow_extras_ || subcommands_.empty()) {
-        missing_.emplace_back(val_type, val);
+    if(allow_extras_ == ExtrasMode::ErrorImmediately) {
+        throw ExtrasError(name_, std::vector<std::string>{val});
+    }
+    if(capture_extras(allow_extras_) || subcommands_.empty() || get_prefix_command()) {
+        if(allow_extras_ != ExtrasMode::Ignore) {
+            missing_.emplace_back(val_type, val);
+        }
         return;
     }
-    // allow extra arguments to be places in an option group if it is allowed there
+    // allow extra arguments to be placed in an option group if it is allowed there
     for(auto &subc : subcommands_) {
-        if(subc->name_.empty() && subc->allow_extras_) {
+        if(subc->name_.empty() && capture_extras(subc->allow_extras_)) {
             subc->missing_.emplace_back(val_type, val);
             return;
         }
     }
-    // if we haven't found any place to put them yet put them in missing
-    missing_.emplace_back(val_type, val);
+    if(allow_extras_ != ExtrasMode::Ignore) {
+        // if we haven't found any place to put them yet put them in missing
+        missing_.emplace_back(val_type, val);
+    }
 }
 
 CLI11_INLINE void App::_move_option(Option *opt, App *app) {

@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2025, University of Cincinnati, developed by Henry Schreiner
+// Copyright (c) 2017-2026, University of Cincinnati, developed by Henry Schreiner
 // under NSF AWARD 1414736 and by the respective contributors.
 // All rights reserved.
 //
@@ -12,7 +12,7 @@
 
 #define CLI11_VERSION_MAJOR 2
 #define CLI11_VERSION_MINOR 6
-#define CLI11_VERSION_PATCH 1
-#define CLI11_VERSION "2.6.1"
+#define CLI11_VERSION_PATCH 2
+#define CLI11_VERSION "2.6.2"
 
 // [CLI11:version_hpp:end]

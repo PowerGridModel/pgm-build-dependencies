@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2025, University of Cincinnati, developed by Henry Schreiner
+// Copyright (c) 2017-2026, University of Cincinnati, developed by Henry Schreiner
 // under NSF AWARD 1414736 and by the respective contributors.
 // All rights reserved.
 //
@@ -174,5 +174,12 @@
 #define CLI11_INLINE
 #else
 #define CLI11_INLINE inline
+#endif
+
+/** Module inline to support module operations**/
+#if defined CLI11_CPP17
+#define CLI11_MODULE_INLINE inline
+#else
+#define CLI11_MODULE_INLINE static
 #endif
 // [CLI11:macros_hpp:end]
