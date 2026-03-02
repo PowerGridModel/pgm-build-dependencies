@@ -128,7 +128,7 @@ jobs:
         run: echo "License cleanup completed successfully"
 
       - name: Upload Scan Results Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: license-scan-results
           path: results/
