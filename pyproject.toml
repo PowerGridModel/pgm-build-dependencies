@@ -43,3 +43,4 @@ CLI11 = "pgm_build_dependencies.cli11"
 
 [project.scripts]
 pgm-build-setup-ga-ci = "pgm_build_dependencies.setup_ga_ci:setup_ga_ci"
+pgm-build-setup-path = "pgm_build_dependencies.cmake_prefix_path:cmake_prefix_path"
