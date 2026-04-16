@@ -28,19 +28,19 @@ jobs:
 
     steps:
       - name: generate GitHub App token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
         id: generate-token
         with:
           app-id: ${{ secrets.CI_BOT_APP_ID }}
           private-key: ${{ secrets.CI_BOT_PRIVATE_KEY }}
 
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           token: ${{ steps.generate-token.outputs.token }}
 
       - name: Setup python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.13"
           architecture: x64
@@ -79,7 +79,7 @@ jobs:
           ls src/pgm_build_dependencies/cli11/
 
       - name: License scan - entire repository
-        uses: fossology/fossology-action@v1
+        uses: fossology/fossology-action@77ce100b60db6a92aa122c9103908dda44a06514 # v1
         continue-on-error: true
         with:
             scan_mode: repo
@@ -138,7 +138,7 @@ jobs:
         run: echo "License cleanup completed successfully"
 
       - name: Upload Scan Results Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: license-scan-results
           path: results/
@@ -152,7 +152,7 @@ jobs:
       - name: Commit and push changes
         if: ${{ github.event_name == 'schedule' || inputs.force_publish }}
         id: commit
-        uses: stefanzweifel/git-auto-commit-action@v7
+        uses: stefanzweifel/git-auto-commit-action@b863ae1933cb653a53c021fe36dbb774e1fb9403 # v5.2.0
         with:
           commit_message: Update the headers
           commit_options: '--signoff'
@@ -162,7 +162,7 @@ jobs:
 
       - name: publish
         if: ${{ inputs.force_publish || (steps.commit.outputs.changes_detected == 'true' && github.event_name == 'schedule') }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         with:
           tag_name: ${{ env.VERSION }}
           files: dist/*.whl
